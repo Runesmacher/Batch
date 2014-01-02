@@ -45,24 +45,24 @@ public class CommandHandler {
 				writer.write("# The player that executes the command must have appropriate permissions for all commands that will be executed\n");
 				writer.write("#\n");
 				writer.write("# Syntax : all|player:command\n");
-				writer.write("#                   Define if the command can be run in console and by player (all) or only by the player (player)\n");
-				writer.write("#                   Add the $ to every line that belongs to the command, except the last line\n");
+				writer.write("#          Define if the command can be run in console and by player (all) or only by the player (player)\n");
+				writer.write("#          Add a ; to the last command of the alias\n");
 				writer.write("##############\n");
 				writer.write("\n");
 				writer.write("# /suitup <target>\n");
 				writer.write("# Gives the target player a full suit of iron armor and then teleports you to the target\n");
-				writer.write("all:suitup;$\n");
-				writer.write("give <<param1>> ironchestplate 1$\n");
-				writer.write("give <<param1>> ironpants 1$\n");
-				writer.write("give <<param1>> ironboots 1$\n");
-				writer.write("give <<param1>> ironhelmet 1\n");
+				writer.write("all:suitup\n");
+				writer.write("give <<param1>> ironchestplate 1\n");
+				writer.write("give <<param1>> ironpants 1\n");
+				writer.write("give <<param1>> ironboots 1\n");
+				writer.write("give <<param1>> ironhelmet 1;\n");
 				writer.write("\n");
 				writer.write("# /timeweather <time|day|night> <rain|sun>\n");
 				writer.write("# Sets the time to what you want and sets weather\n");
 				writer.write("# Due to world specific, only a player can run this command\n");
-				writer.write("player:sunnyDay;$\n");
-				writer.write("time set <<param1>>$\n");
-				writer.write("weather <<param2>>\n");
+				writer.write("player:sunnyDay\n");
+				writer.write("time set <<param1>>\n");
+				writer.write("weather <<param2>>;\n");
 				writer.close();
 				log.info("[Batch][PropertiesFile] Example properties file created !");
 			} catch (IOException ex) {
@@ -72,47 +72,35 @@ public class CommandHandler {
 	}
 
 	public boolean load() throws IOException {
-		/* Go through, line by line. 
-		 * If the line starts with # or !, then save the line in list
-		 * If the line has an assignment, put the name here. */
 		Properties.clear();
 		BufferedReader reader = new BufferedReader(new FileReader(fileName));
-		String tempLine;
+		String line;
 
 		//Cycle through complete contents of the file.         
-		while ((tempLine = reader.readLine()) != null) {
+		while ((line = reader.readLine()) != null) {
 			// Check for multiple lines with <<;>> and recreate them as one line.
-			StringBuilder concatMe = new StringBuilder(tempLine);
-			ArrayList<String> subcommandList = new ArrayList<>();
-			while (concatMe.toString().endsWith("$")) {
-				//Skip next element because it's been merged
-				concatMe.deleteCharAt(concatMe.length() - 1);
-				if ((tempLine = reader.readLine()) != null) {
-					concatMe.append(tempLine);
-					subcommandList.add(tempLine.replace("$", ""));
-				}
-			}
-			String line = concatMe.toString();
-			// Line is now built, read it in as usual.
 
 			if (line.startsWith("#") || line.isEmpty() || line.startsWith("\n") || line.startsWith("\r")) {
 				continue;
 			}
 
-			String[] split = line.split("[ \t]*?;[ \t]*?", 2);
-			if (!(split.length == 2)) {
-				continue;
+			String whoAndCommand = line;
+			ArrayList<String> subcommandList = new ArrayList<>();
+
+			while (((line = reader.readLine()) != null) && !line.endsWith(";")) {
+				subcommandList.add(line);
 			}
 
-			String whoAndCommand = split[0];
-
+			if ((line != null) && line.endsWith(";")) {
+				subcommandList.add(line.replace(";", ""));
+			}
 			Properties.put(whoAndCommand, subcommandList);
 		}
 
 		reader.close();
 		return true;
 	}
-
+	
 	public String[] getSubCommands(String command) {
 		if (Properties.containsKey(command)) {
 			ArrayList<String> rt = Properties.get(command);
