@@ -1,0 +1,18 @@
+name: Batch
+main: Runesmacher.Batch.Batch
+version: 0.1
+author: Runesmacher
+description: Batch is a simple plugin that executes different commands when a command is entered.
+commands:
+   batch:
+      description: Default batch command.
+      usage: /<command> [command]
+      permission: batch.basic
+      
+permissions:
+  batch.*:
+    default: op
+    description: Give players with op everything by default
+    children:
+       batch.reload: true
+       batch.list: true
